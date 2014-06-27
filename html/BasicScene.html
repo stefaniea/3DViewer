@@ -25,7 +25,7 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
 				camera.position.z = 500;
 
-				
+				AxisViewer.init(camera); //initialize 2nd viewport for axis
 
 				controls = new THREE.TrackballControls( camera );
 

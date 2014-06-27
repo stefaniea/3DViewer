@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>three.js 3D Viewer</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+	body {
+		color: #000;
+		font-family:Monospace;
+		font-size:13px;
+		text-align:center;
+		font-weight: bold;
+
+		background-color: #fff;
+		margin: 0px;
+		overflow: hidden;
+	}
+
+	#info {
+		color:#000;
+		position: absolute;
+		top: 0px; width: 100%;
+		padding: 5px;
+
+	}
+
+	a {
+		color: red;
+	}
+	</style>
+</head>
+<body>
+
+	<div id="left" style="float: left;">
+	<h2>Left-Handed</h2>
+	</div>
+	<div id="right" style="float: right; ">
+		<h2>Right-Handed</h2>
+	</div>
+	<div id="info">
+		MOVE mouse &amp; press LEFT/A: rotate, MIDDLE/S: zoom, RIGHT/D: pan<br>
+		<button id="cubetoggle" onclick="cubeToggle()">Toggle Cube</button>
+	</div>
+
+	<script src="../js/three.min.js"></script>
+	<script src="http://mrdoob.github.com/three.js/examples/fonts/helvetiker_regular.typeface.js"></script> <!--font-->
+	<script src="../js/TrackballControls.js"></script>
+	<script src="../js/Detector.js"></script>
+	<script src="../js/stats.min.js"></script>
+	<script src="../js/AxisViewer.js"></script>
+	<script src="../js/AxisHelper2.js"></script>
+	<link rel="stylesheet" type="text/css" href="../css/axisviewport.css">
+
+	<script>
+
+	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+	var left, right, stats, showCube;
+
+	var camera, cameraRight, controls, scene, sceneRight, renderer, rendererRight;
+	var cubeLeft, cubeRight;
+
+	var cross;
+
+	showCube = true;
+
+function cubeToggle(){
+	console.log("cube toggle");
+	if(showCube) {
+		 var cube = scene.getObjectByName(cubeLeft.name);
+		cube.visible = false;
+		var cube = sceneRight.getObjectByName(cubeRight.name);
+		cube.visible = false;
+		render();
+		showCube = false;
+		//THREE.SceneUtils.traverseHierarchy( cube, function ( object ) { object.visible = false; } );
+	}
+	else {
+		var cube = scene.getObjectByName(cubeLeft.name);
+		cube.visible = true;
+		var cube = sceneRight.getObjectByName(cubeRight.name);
+		cube.visible = true;
+		render();
+		showCube = true;
+	}
+}
+
+
+
+	init();
+	animate();
+
+	function init() {
+		
+
+		camera = new THREE.PerspectiveCamera( 60, window.innerWidth*.5 / window.innerHeight, 1, 1000 );
+		camera.position.z = 500;
+				
+
+				controls = new THREE.TrackballControls( camera );
+
+
+				controls.rotateSpeed = 1.0;
+				controls.zoomSpeed = 1.2;
+				controls.panSpeed = 0.8;
+
+				controls.noZoom = false;
+				controls.noPan = false;
+
+				controls.staticMoving = true;
+				controls.dynamicDampingFactor = 0.3;
+
+				controls.keys = [ 65, 83, 68 ];
+
+				controls.addEventListener( 'change', render );
+
+				// world
+
+				scene = new THREE.Scene();
+				sceneRight = new THREE.Scene();
+				//scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 ); //fog
+
+				//var geometry = new THREE.CylinderGeometry( 0, 10, 30, 4, 1 );
+				if(showCube) {
+				//cube 
+				var cubegeom = new THREE.BoxGeometry( 50, 50, 50 );
+				 cubeLeft = new THREE.Mesh( cubegeom, new THREE.MeshLambertMaterial( { color: 0x66000 } ) );
+				scene.add( cubeLeft );
+
+					//cube 
+				var cubegeom = new THREE.BoxGeometry( 50, 50, 50 );
+				cubeRight = new THREE.Mesh( cubegeom, new THREE.MeshLambertMaterial( { color: 0x66000 } ) );
+				sceneRight.add( cubeRight );
+			}
+
+
+
+				// lights
+
+				var light = new THREE.DirectionalLight( 0xffffff, 2 );
+				light.position.set( 1, 1, 1 ).normalize();
+				scene.add( light );
+				var light = new THREE.DirectionalLight( 0xffffff, 2 );
+				light.position.set( 1, 1, 1 ).normalize();
+				sceneRight.add( light );
+			
+
+				var light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( -1, -1, -1 ).normalize();
+				scene.add( light );
+				var light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( -1, -1, -1 ).normalize();
+				sceneRight.add( light );
+				
+
+
+				// renderer
+
+				renderer = new THREE.WebGLRenderer();
+				//renderer.setClearColor( scene.fog.color, 1 );
+				renderer.setClearColor(0xcccccc, 1);
+				renderer.setSize( window.innerWidth/2, window.innerHeight );
+
+				rendererRight = new THREE.WebGLRenderer();
+				//renderer.setClearColor( scene.fog.color, 1 );
+				rendererRight.setClearColor(0xcccccc, 1);
+				rendererRight.setSize( window.innerWidth/2, window.innerHeight );
+
+				left = document.getElementById( 'left' );
+				left.appendChild( renderer.domElement );
+
+				right = document.getElementById( 'right' );
+				right.appendChild( rendererRight.domElement );
+
+				//stats for javascript performance, frames per second
+
+				/*stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				container.appendChild( stats.domElement );*/
+
+				//axis arrows
+
+				var axisHelper = new THREE.AxisHelper2( 100, false );
+				scene.add( axisHelper );
+
+				var axisHelper2 = new THREE.AxisHelper2( 100, true );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+				sceneRight.add(axisHelper2);
+				
+				AxisViewer.makeTextForAxis(axisHelper, scene);
+				AxisViewer.makeTextForAxis(axisHelper2, sceneRight);
+
+				render();
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth *.5 / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				cameraRight.aspect = window.innerWidth *.5 / window.innerHeight;
+				cameraRight.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				rendererRight.setSize( window.innerWidth/2, window.innerHeight );
+
+				controls.handleResize();
+
+				render();
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				controls.update();
+				
+
+		}
+
+		function render() {
+
+			renderer.render( scene, camera );
+			rendererRight.render( sceneRight, camera );
+				//stats.update();
+
+			}
+
+
+			</script>
+
+		</body>
+		</html>

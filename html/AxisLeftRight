@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>three.js 3D Viewer</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+	body {
+		color: #000;
+		font-family:Monospace;
+		font-size:13px;
+		text-align:center;
+		font-weight: bold;
+
+		background-color: #fff;
+		margin: 0px;
+		overflow: hidden;
+	}
+
+	#info {
+		color:#000;
+		position: absolute;
+		top: 0px; width: 100%;
+		padding: 5px;
+
+	}
+
+	a {
+		color: red;
+	}
+	</style>
+</head>
+
+<body>
+
+	<div id="left">
+	</div>
+	<div id="right">
+	</div>
+	<div id="info">
+		MOVE mouse &amp; press LEFT/A: rotate, MIDDLE/S: zoom, RIGHT/D: pan
+	</div>
+
+	<script src="../js/three.min.js"></script>
+	<script src="http://mrdoob.github.com/three.js/examples/fonts/helvetiker_regular.typeface.js"></script> <!--font-->
+	<script src="../js/TrackballControls.js"></script>
+	<script src="../js/Detector.js"></script>
+	<script src="../js/stats.min.js"></script>
+	<script src="../js/AxisViewer.js"></script>
+	<link rel="stylesheet" type="text/css" href="../css/axisviewport.css">
+
+	<script>
+
+	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+	var container, stats;
+
+	var camera, controls, scene, renderer;
+
+	var cross;
+
+	init();
+	animate();
+
+	function init() {
+
+		camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+		camera.position.z = 500;
+				//AxisViewer.init(camera, false); //initialize 2nd viewport for axis
+
+				controls = new THREE.TrackballControls( camera );
+
+
+				controls.rotateSpeed = 1.0;
+				controls.zoomSpeed = 1.2;
+				controls.panSpeed = 0.8;
+
+				controls.noZoom = false;
+				controls.noPan = false;
+
+				controls.staticMoving = true;
+				controls.dynamicDampingFactor = 0.3;
+
+				controls.keys = [ 65, 83, 68 ];
+
+				controls.addEventListener( 'change', render );
+
+				// world
+
+				sceneL = new THREE.Scene();
+				//scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 ); //fog
+
+				
+
+				// lights
+
+				var light = new THREE.DirectionalLight( 0xffffff, 2 );
+				light.position.set( 1, 1, 1 ).normalize();
+				sceneL.add( light );
+
+				var light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( -1, -1, -1 ).normalize();
+				sceneL.add( light );
+
+				// renderer
+
+				renderer = new THREE.WebGLRenderer();
+				//renderer.setClearColor( scene.fog.color, 1 );
+				renderer.setClearColor(0xcccccc, 1);
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container = document.getElementById( 'left' );
+				container.appendChild( renderer.domElement );
+
+				//axis arrows
+
+				var axisHelper = new THREE.AxisHelper( 5 );
+				axisHelper.z = 0;
+				axisHelper.y = 0;
+				axisHelper.x = 0;
+				sceneL.add( axisHelper );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+
+
+
+				render();
+
+			}
+
+function rightHanded() {
+		// axes
+		//axes2 = new THREE.AxisHelper( 100 );
+		var blue = new THREE.Color();
+		blue.setRGB(0, 0, 255);
+		var red = new THREE.Color();
+		red.setRGB(255, 0, 0);
+		var green = new THREE.Color();
+		green.setRGB(0, 255, 0);
+
+		var arrowlength = 100;
+
+		var directionX = new THREE.Vector3(1, 0, 0);
+		var originX = new THREE.Vector3(0, 0, 0);
+		var arrowHelperX = new THREE.ArrowHelper(directionX, originX, arrowlength, red, 0, 0); // 100 is length, 20 and 10 are head length and width
+		sceneR.add(arrowHelperX);
+
+		var directionY = new THREE.Vector3(0, 1, 0);
+		var originY = new THREE.Vector3(0, 0, 0);
+		var arrowHelperY = new THREE.ArrowHelper(directionY, originY, arrowlength, green, 0, 0); // 100 is length, 20 and 10 are head length and width
+		sceneR.add(arrowHelperY);
+
+		var directionZ = new THREE.Vector3(0, 0, -1);
+		var originZ = new THREE.Vector3(0, 0, 0);
+		var arrowHelperZ = new THREE.ArrowHelper(directionZ, originZ, arrowlength, blue, 0, 0); // 100 is length, 20 and 10 are head length and width
+		sceneR.add(arrowHelperZ);
+
+		//X, Y, Z letters
+
+		//X
+		    var  textGeo = new THREE.TextGeometry('X', {
+		        size: 10,
+		        height: 2,
+		        curveSegments: 4,
+		        font: "helvetiker",
+		        style: "normal"
+
+		    });
+
+
+		var  textMaterial = new THREE.MeshBasicMaterial({ color: red });
+		var  text = new THREE.Mesh(textGeo , textMaterial);
+
+		text.position.x = arrowlength;
+		text.position.y = 0;
+		text.position.z = 0;
+
+		sceneR.add(text);
+
+		//Y
+		    var  textGeo = new THREE.TextGeometry('Y', {
+		        size: 10,
+		        height: 2,
+		        curveSegments: 4,
+		        font: "helvetiker",
+		        style: "normal"
+
+		    });
+
+		var  textMaterial = new THREE.MeshBasicMaterial({ color: green });
+		var  text = new THREE.Mesh(textGeo , textMaterial);
+
+		text.position.x = 0;
+		text.position.y = arrowlength;
+		text.position.z = 0;
+		sceneR.add(text);
+
+		//Z
+		    var  textGeo = new THREE.TextGeometry('Z', {
+		        size: 10,
+		        height: 2,
+		        curveSegments: 4,
+		        font: "helvetiker",
+		        style: "normal"
+
+		    });
+
+		var  textMaterial = new THREE.MeshBasicMaterial({ color: blue });
+		var  text = new THREE.Mesh(textGeo , textMaterial);
+
+		text.position.x = 0;
+		text.position.y = 0;
+		text.position.z = -arrowlength;
+		sceneR.add(text);
+
+}
+
+function leftHanded() {
+	// axes
+	var axes2 = new THREE.AxisHelper( 100 );
+	sceneL.add( axes2 );
+
+	//X, Y, Z letters
+
+	//X
+	var  textGeo = new THREE.TextGeometry('X', {
+		size: 10,
+		height: 2,
+		curveSegments: 4,
+		font: "helvetiker",
+		style: "normal"
+
+	});
+	var  color = new THREE.Color();
+	color.setRGB(255, 0, 0);
+	var  textMaterial = new THREE.MeshBasicMaterial({ color: color });
+	var  text = new THREE.Mesh(textGeo , textMaterial);
+
+	text.position.x = axes2.geometry.vertices[1].x;
+	text.position.y = axes2.geometry.vertices[1].y;
+	text.position.z = axes2.geometry.vertices[1].z;
+
+	sceneL.add(text);
+
+	//Y
+	var  textGeo = new THREE.TextGeometry('Y', {
+		size: 10,
+		height: 2,
+		curveSegments: 4,
+		font: "helvetiker",
+		style: "normal"
+
+	});
+	var  color = new THREE.Color();
+	color.setRGB(0, 255, 0);
+	var  textMaterial = new THREE.MeshBasicMaterial({ color: color });
+	var  text = new THREE.Mesh(textGeo , textMaterial);
+
+	text.position.x = axes2.geometry.vertices[3].x;
+	text.position.y = axes2.geometry.vertices[3].y;
+	text.position.z = axes2.geometry.vertices[3].z;
+	//text.rotation = camera.rotation;
+	sceneL.add(text);
+
+	//Z
+	var  textGeo = new THREE.TextGeometry('Z', {
+		size: 10,
+		height: 2,
+		curveSegments: 4,
+		font: "helvetiker",
+		style: "normal"
+
+	});
+	var  color = new THREE.Color();
+	color.setRGB(0, 0, 250);
+	var  textMaterial = new THREE.MeshBasicMaterial({ color: color });
+	var  text = new THREE.Mesh(textGeo , textMaterial);
+
+	text.position.x = axes2.geometry.vertices[5].x;
+	text.position.y = axes2.geometry.vertices[5].y;
+	text.position.z = axes2.geometry.vertices[5].z;
+	//text.rotation = camera.rotation;
+	sceneL.add(text);
+	}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				controls.handleResize();
+
+				render();
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				controls.update();
+				if(camera && controls) {
+				AxisViewer.animate(camera, controls); //update inset viewport for axis based on camera position
+			}
+
+		}
+
+		function render() {
+
+			renderer.render( scene, camera );
+				//stats.update();
+
+			}
+
+
+			</script>
+
+		</body>
+		</html>

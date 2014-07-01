@@ -31,16 +31,16 @@
 	</style>
 </head>
 <body>
-
-	<div id="left" style="float: left;">
+<!--labelled them wrong in the beginning --oops.  class right means the position, but it holds the left handed-->
+	<div id="right" style="float: left;">
 	<h2>Left-Handed</h2>
 	</div>
-	<div id="right" style="float: right; ">
+	<div id="left" style="float: right; ">
 		<h2>Right-Handed</h2>
 	</div>
 	<div id="info">
 		MOVE mouse &amp; press LEFT/A: rotate, MIDDLE/S: zoom, RIGHT/D: pan<br>
-		<button id="cubetoggle" onclick="cubeToggle()">Toggle Cube</button>
+		<!--<button id="cubetoggle" onclick="geomToggle()">Toggle Cube</button>--> <!--toggling not working with the obj idk why-->
 	</div>
 
 	<script src="../js/three.min.js"></script>
@@ -50,39 +50,40 @@
 	<script src="../js/stats.min.js"></script>
 	<script src="../js/AxisViewer.js"></script>
 	<script src="../js/AxisHelper2.js"></script>
+	<script src="../js/OBJLoader.js"></script>
 	<link rel="stylesheet" type="text/css" href="../css/axisviewport.css">
 
 	<script>
 
 	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-	var left, right, stats, showCube;
+	var left, right, stats, showGeom;
 
 	var camera, cameraRight, controls, scene, sceneRight, renderer, rendererRight;
-	var cubeLeft, cubeRight;
+	var leftHand, rightHand;
 
 	var cross;
 
-	showCube = true;
+	showGeom = true;
 
-function cubeToggle(){
-	console.log("cube toggle");
-	if(showCube) {
-		 var cube = scene.getObjectByName(cubeLeft.name);
-		cube.visible = false;
-		var cube = sceneRight.getObjectByName(cubeRight.name);
-		cube.visible = false;
+function geomToggle(){
+	console.log("geom toggle");
+	if(showGeom) {
+		 var hand = scene.getObjectByName(leftHand.name);
+		hand.visible = false;
+		var hand = sceneRight.getObjectByName(rightHand.name);
+		hand.visible = false;
 		render();
-		showCube = false;
+		showGeom = false;
 		//THREE.SceneUtils.traverseHierarchy( cube, function ( object ) { object.visible = false; } );
 	}
 	else {
-		var cube = scene.getObjectByName(cubeLeft.name);
-		cube.visible = true;
-		var cube = sceneRight.getObjectByName(cubeRight.name);
-		cube.visible = true;
+		var hand = scene.getObjectByName(leftHand.name);
+		hand.visible = true;
+		var hand = sceneRight.getObjectByName(rightHand.name);
+		hand.visible = true;
 		render();
-		showCube = true;
+		showGeom = true;
 	}
 }
 
@@ -90,6 +91,16 @@ function cubeToggle(){
 
 	init();
 	animate();
+
+	function rotateAroundWorldAxis( object, axis, radians ) {
+
+    var rotationMatrix = new THREE.Matrix4();
+
+    rotationMatrix.makeRotationAxis( axis.normalize(), radians );
+    rotationMatrix.multiplySelf( object.matrix );                       // pre-multiply
+    object.matrix = rotationMatrix;
+    object.rotation.setEulerFromRotationMatrix( object.matrix );
+}
 
 	function init() {
 		
@@ -119,19 +130,34 @@ function cubeToggle(){
 
 				scene = new THREE.Scene();
 				sceneRight = new THREE.Scene();
-				//scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 ); //fog
 
-				//var geometry = new THREE.CylinderGeometry( 0, 10, 30, 4, 1 );
-				if(showCube) {
-				//cube 
-				var cubegeom = new THREE.BoxGeometry( 50, 50, 50 );
-				 cubeLeft = new THREE.Mesh( cubegeom, new THREE.MeshLambertMaterial( { color: 0x66000 } ) );
-				scene.add( cubeLeft );
 
-					//cube 
-				var cubegeom = new THREE.BoxGeometry( 50, 50, 50 );
-				cubeRight = new THREE.Mesh( cubegeom, new THREE.MeshLambertMaterial( { color: 0x66000 } ) );
-				sceneRight.add( cubeRight );
+				var yAxis = new THREE.Vector3(1,0,0);
+				
+
+				if(showGeom) {
+
+				//obj
+				var manager = new THREE.LoadingManager();
+				var loader = new THREE.OBJLoader(manager);
+				loader.load( 'obj/hand_right.obj', function ( object ) {
+					rightHand = object;
+					rightHand.scale.set(30,30,30);
+					rightHand.position.set(-30, -30, 0);
+					rightHand.rotation.set(0, Math.PI, 0); // Set initial rotation
+					scene.add( rightHand );
+				} );
+
+					//obj
+				var manager = new THREE.LoadingManager();
+				var loader = new THREE.OBJLoader(manager);
+				loader.load( 'obj/hand_left.obj', function ( object ) {
+					leftHand = object;
+					leftHand.scale.set(30,30,30);
+					leftHand.position.set(-30, -20, 0);
+					leftHand.rotation.set(0, Math.PI, 0); // Set initial rotation
+					sceneRight.add( leftHand );
+				} );
 			}
 
 
